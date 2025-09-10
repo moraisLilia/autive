@@ -246,7 +246,7 @@
         if (data.success) {
           showMessage(loginMessage, data.message, 'success');
           setTimeout(() => {
-            window.location.href = '/dashboard.html'; // Redirecionar para uma página de dashboard
+            window.location.href = './home.html'; // Redirecionar para tela principal
           }, 1500);
         } else {
           showMessage(loginMessage, data.message, 'error');
@@ -256,6 +256,8 @@
         showMessage(loginMessage, 'Erro na comunicação com o servidor.', 'error');
       }
     });
+// git add home.html
+//git commit -m "Atualiza login_register.html"
 
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
