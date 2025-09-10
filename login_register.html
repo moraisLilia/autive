@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login e Cadastro - Autive</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 400px;
+      width: 90%; /* Responsividade */
+      margin: 20px auto; /* Ajuste de margem */
+      background-color: #fff;
+      padding: 20px 30px 30px 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15); /* Sombra mais pronunciada */
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      cursor: pointer;
+      border-bottom: 2px solid #eee; /* Linha para separar as abas */
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px 0; /* Aumento do padding */
+      text-align: center;
+      background-color: #f9f9f9; /* Cor de fundo mais clara */
+      border-radius: 8px 8px 0 0;
+      font-weight: bold;
+      user-select: none;
+      transition: all 0.3s ease; /* Transição mais suave */
+      color: #555;
+    }
+
+    .tab.active {
+      background-color: #4285f4;
+      color: white;
+      border-bottom: 2px solid #4285f4; /* Linha ativa */
+    }
+
+    form {
+      display: none;
+      flex-direction: column;
+      padding-top: 10px; /* Espaçamento após as abas */
+    }
+
+    form.active {
+      display: flex;
+    }
+
+    label {
+      margin-top: 15px; /* Aumento do espaçamento */
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      padding: 10px; /* Aumento do padding */
+      border: 1px solid #ddd; /* Borda mais suave */
+      border-radius: 4px;
+      font-size: 15px; /* Aumento da fonte */
+      width: calc(100% - 22px); /* Ajuste para padding */
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+        border-color: #4285f4; /* Borda azul ao focar */
+        outline: none; /* Remove o outline padrão */
+        box-shadow: 0 0 5px rgba(66, 133, 244, 0.3); /* Sombra ao focar */
+    }
+
+    .checkbox-group {
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      margin-right: 10px; /* Aumento do espaçamento */
+      transform: scale(1.2); /* Aumenta o tamanho do checkbox */
+    }
+
+    button {
+      margin-top: 25px; /* Aumento do espaçamento */
+      padding: 12px; /* Aumento do padding */
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 17px; /* Aumento da fonte */
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease; /* Transição e efeito de clique */
+    }
+
+    button:hover {
+      background-color: #357ae8;
+      transform: translateY(-2px); /* Leve elevação ao passar o mouse */
+    }
+
+    button:active {
+        transform: translateY(0); /* Retorna à posição original ao clicar */
+    }
+
+    .message {
+      margin-top: 20px; /* Aumento do espaçamento */
+      padding: 12px; /* Aumento do padding */
+      border-radius: 4px;
+      display: none;
+      font-weight: bold;
+      text-align: center;
+      animation: fadeIn 0.5s ease-in-out; /* Animação de fade-in */
+    }
+
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" id="login-tab">Login</div>
+      <div class="tab" id="register-tab">Cadastro</div>
+    </div>
+
+    <form id="login-form" class="active">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" name="login-email" required autocomplete="email" />
+
+      <label for="login-password">Senha</label>
+      <input type="password" id="login-password" name="login-password" required autocomplete="current-password" />
+
+      <button type="submit">Entrar</button>
+      <div id="login-message" class="message"></div>
+    </form>
+
+   <form id="register-form">
+      <label for="register-email">Email</label>
+      <input type="email" id="register-email" name="register-email" required autocomplete="email" />
+
+      <label for="register-username">Nome de Usuário</label>
+      <input type="text" id="register-username" name="register-username" required autocomplete="username" />
+
+      <label for="register-name">Nome Completo</label>
+      <input type="text" id="register-name" name="register-name" required autocomplete="name" />
+
+      <label for="register-password">Senha</label>
+      <input type="password" id="register-password" name="register-password" required autocomplete="new-password" />
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="register-terms" name="register-terms" required />
+        <label for="register-terms">Aceito os termos de uso</label>
+      </div>
+
+      <button type="submit">Cadastrar</button>
+      <div id="register-message" class="message"></div>
+    </form>
+
+  </div>
+
+  <script>
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginMessage = document.getElementById('login-message');
+    const registerMessage = document.getElementById('register-message');
+
+    // Função para exibir mensagens
+    function showMessage(element, message, type) {
+        element.textContent = message;
+        element.className = `message ${type}`;
+        element.style.display = 'block';
+    }
+
+    function clearMessages() {
+      loginMessage.style.display = 'none';
+      registerMessage.style.display = 'none';
+      loginMessage.textContent = '';
+      registerMessage.textContent = '';
+      loginMessage.className = 'message';
+      registerMessage.className = 'message';
+    }
+
+    loginTab.addEventListener('click', () => {
+      loginTab.classList.add('active');
+      registerTab.classList.remove('active');
+      loginForm.classList.add('active');
+      registerForm.classList.remove('active');
+      clearMessages();
+    });
+
+    registerTab.addEventListener('click', () => {
+      registerTab.classList.add('active');
+      loginTab.classList.remove('active');
+      registerForm.classList.add('active');
+      loginForm.classList.remove('active');
+      clearMessages();
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const formData = new FormData(loginForm);
+      formData.append('action', 'login');
+
+      try {
+        const response = await fetch('process.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showMessage(loginMessage, data.message, 'success');
+          setTimeout(() => {
+            window.location.href = '/dashboard.html'; // Redirecionar para uma página de dashboard
+          }, 1500);
+        } else {
+          showMessage(loginMessage, data.message, 'error');
+        }
+      } catch (error) {
+        console.error('Erro na requisição de login:', error);
+        showMessage(loginMessage, 'Erro na comunicação com o servidor.', 'error');
+      }
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const formData = new FormData(registerForm);
+      formData.append('action', 'register');
+
+      // Validação básica do checkbox no cliente
+      const termsCheckbox = document.getElementById('register-terms');
+      if (!termsCheckbox.checked) {
+          showMessage(registerMessage, 'Você deve aceitar os termos de uso.', 'error');
+          return;
+      }
+
+      try {
+        const response = await fetch('process.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showMessage(registerMessage, data.message, 'success');
+          registerForm.reset(); // Limpa o formulário
+          setTimeout(() => {
+            loginTab.click(); // Volta para a aba de login
+          }, 2000); // Aumenta o tempo para o usuário ler a mensagem
+        } else {
+          showMessage(registerMessage, data.message, 'error');
+        }
+      } catch (error) {
+        console.error('Erro na requisição de registro:', error);
+        showMessage(registerMessage, 'Erro na comunicação com o servidor.', 'error');
+      }
+    });
+  </script>
+</body>
+</html>
