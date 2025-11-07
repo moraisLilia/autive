@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <title>Menu Principal - Autive</title>
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff; /* Fundo amigável, leve */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Cabeçalho fixo */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #007bff; /* Azul vibrante */
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        header .title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        header .icon {
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        /* Área central */
+        main {
+            margin-top: 80px; /* Espaço para o header fixo */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            flex: 1;
+        }
+
+        /* Logotipo */
+        .logo {
+            text-align: center;
+        }
+
+        .logo .brand {
+            font-size: 3em;
+            font-weight: bold;
+            letter-spacing: 2px;
+            /* Estilo lúdico: cores vibrantes para cada letra */
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24, #f0932b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+        }
+
+        .logo .subtitle {
+            font-size: 1em;
+            color: #666;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Botões de menu */
+        .menu-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Duas colunas */
+            gap: 20px;
+            width: 100%;
+            max-width: 800px; /* Ajustado para acomodar duas colunas */
+        }
+
+        .menu-button {
+            background-color: #ffd700; /* Amarelo vibrante */
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .menu-button .illustration {
+            flex: 0 0 10%;
+            text-align: center;
+        }
+
+        .menu-button .illustration img {
+            width: 100px; /* Aumentado de 60px para 80px */
+            height: 100px; /* Aumentado de 60px para 80px */
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .menu-button .text {
+            flex: 0 0 70%;
+            padding-left: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Responsividade vertical (foco em telas estreitas/altas) */
+        @media (max-width: 600px) {
+            .logo .brand {
+                font-size: 2.5em;
+            }
+            .menu-buttons {
+                grid-template-columns: 1fr; /* Volta para uma coluna em telas pequenas */
+            }
+            .menu-button {
+                padding: 12px;
+            }
+            .menu-button .illustration img {
+                width: 70px; /* Aumentado de 50px para 70px em mobile */
+                height: 70px; /* Aumentado de 50px para 70px em mobile */
+            }
+            .menu-button .text {
+                font-size: 1em;
+            }
+        }
+
+        /* Para telas muito altas, garantir que o conteúdo se expanda */
+        @media (min-height: 800px) {
+            main {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <header>
+        Pagina Principal
+
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center link-light text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                <strong>eu</strong>
+            </a>
+            <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
+                <li><a class="dropdown-item" href="#">New project...</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main>
+        <div class="logo">
+            <div class="brand">autive</div>
+            <div class="subtitle">AUTISM SUPORTIVE</div>
+        </div>
+
+        <div class="menu-buttons">
+            <div class="menu-button">
+                <div class="illustration">
+                    <img src="imgJogos.png" alt="">
+                </div>
+                <div class="text">Jogos</div>
+            </div>
+
+            <div class="menu-button">
+                <div class="illustration">
+                    <img src="imgPortador.png" alt="">
+                </div>
+                <div class="text">Informações do Portador</div>
+            </div>
+
+        <a href="http://localhost:3000/chat.html" target="_blank">
+            <div class="menu-button">
+                <div class="illustration">
+                    <img src="imgChat.png" alt="">
+                </div>
+                <div class="text">Chat</div>
+            </div>
+        </a>
+
+            <div class="menu-button">
+                <div class="illustration">
+                    <img src="imgSobre.png" alt="">
+                </div>
+                <div class="text">Sobre o Autive</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Adicionando o JavaScript do Bootstrap para o dropdown funcionar -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>

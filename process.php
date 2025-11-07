@@ -1,3 +1,4 @@
+
 <?php
 header('Content-Type: application/json');
 session_start(); // Inicia a sessão no topo do arquivo
@@ -51,7 +52,7 @@ if ($action === 'register') {
 
     // Inserir novo usuário
     try {
-        $stmt = $conn->prepare("INSERT INTO usuarios (email, username, nome, senha) VALUES (?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO usuarios (email, username, name, password) VALUES (?, ?, ?, ?)");
         if (!$stmt) {
             throw new Exception("Erro ao preparar a consulta de registro: " . $conn->error);
         }
@@ -80,7 +81,7 @@ if ($action === 'register') {
     }
 
     try {
-        $stmt = $conn->prepare("SELECT id, senha, username FROM usuarios WHERE email = ?");
+        $stmt = $conn->prepare("SELECT id, password, username FROM usuarios WHERE email = ?");
         if (!$stmt) {
             throw new Exception("Erro ao preparar a consulta de login: " . $conn->error);
         }
