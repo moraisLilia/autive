@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Chat Comunitário - Autive</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .message.user {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .message.other {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        .message .username {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .chat-input button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .chat-input button:hover {
+            background-color: #0056b3;
+        }
+        .username-input {
+            text-align: center;
+            padding: 20px;
+        }
+        .username-input input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .username-input button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .username-input button:hover {
+            background-color: #218838;
+        }
+        @media (max-width: 600px) {
+            .chat-container {
+                margin: 10px;
+            }
+            .message {
+                max-width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Chat Comunitário - Autive</h1>
+        <p>Converse com a comunidade sobre suporte ao autismo!</p>
+    </header>
+
+    <div id="usernameSection" class="username-input">
+        <input type="text" id="username" placeholder="Digite seu nome de usuário">
+        <button onclick="setUsername()">Entrar no Chat</button>
+    </div>
+
+    <div class="chat-container" id="chatContainer" style="display: none;">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Digite sua mensagem...">
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        const socket = io('http://localhost:3000');
+        let username = '';
+
+        function setUsername() {
+            username = document.getElementById('username').value.trim();
+            if (username === '') {
+                alert('Por favor, digite um nome de usuário.');
+                return;
+            }
+            document.getElementById('usernameSection').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'flex';
+            socket.emit('join', username);
+        }
+
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value.trim();
+            if (message === '') return;
+            socket.emit('chatMessage', { username, message });
+            document.getElementById('messageInput').value = '';
+        }
+
+        // Recebe novas mensagens
+        socket.on('chatMessage', (data) => {
+            addMessage(data.username, data.message, data.username === username ? 'user' : 'other');
+        });
+
+        // Recebe histórico do banco
+        socket.on('historico', (mensagens) => {
+            mensagens.forEach(msg => {
+                addMessage(msg.usuario, msg.mensagem, msg.usuario === username ? 'user' : 'other');
+            });
+        });
+
+        socket.on('userJoined', (user) => {
+            addMessage('Sistema', `${user} entrou no chat.`, 'other');
+        });
+
+        socket.on('userLeft', (user) => {
+            addMessage('Sistema', `${user} saiu do chat.`, 'other');
+        });
+
+        function addMessage(username, text, type) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = `<div class="username">${username}:</div>${text}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
