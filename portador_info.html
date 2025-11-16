@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
+            background-color: #e4dddd;
             padding-top: 70px; /* Espaço para o cabeçalho */
         }
         /* Estilo básico do cabeçalho (pode ser ajustado para corresponder ao seu index.html) */
@@ -17,14 +17,16 @@
             position: fixed;
             top: 0;
             width: 100%;
-            background-color: #007bff;
+            background-color: #007bff; /* Azul vibrante */
             color: white;
             padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        main {
-            padding: 20px;
-        }
+
         .card-title {
             color: #007bff;
             font-weight: bold;
@@ -59,12 +61,19 @@
 </head>
 <body>
     <header>
-        <h4 class="mb-0">Autive: Informações do Portador</h4>
+        Informações do Portador
+
+            <div class="dropdown">
+            <a href="#" class="d-flex align-items-center link-light text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="icon_profile.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                <strong>eu</strong>
+            <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
+                <li><a class="dropdown-item" href="login_register.html">sair</a></li>
+            </ul>
+        </div>
     </header>
 
     <main class="container">
-        <h1 class="my-4 text-center text-primary">Informações Essenciais da Criança</h1>
-
         <div class="card shadow mb-4">
             <div class="card-body">
                 <h5 class="card-title">Preferências e Reforçadores</h5>

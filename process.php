@@ -28,7 +28,7 @@ if ($action === 'register') {
 
     // Verificar se já existe email
     try {
-        $check = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
+        $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
         if (!$check) {
             throw new Exception("Erro ao preparar a consulta de verificação de e-mail: " . $conn->error);
         }
@@ -52,7 +52,7 @@ if ($action === 'register') {
 
     // Inserir novo usuário
     try {
-        $stmt = $conn->prepare("INSERT INTO usuarios (email, username, name, password) VALUES (?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO users (email, username, name, password) VALUES (?, ?, ?, ?)");
         if (!$stmt) {
             throw new Exception("Erro ao preparar a consulta de registro: " . $conn->error);
         }
@@ -81,7 +81,7 @@ if ($action === 'register') {
     }
 
     try {
-        $stmt = $conn->prepare("SELECT id, password, username FROM usuarios WHERE email = ?");
+        $stmt = $conn->prepare("SELECT id, password, username FROM users WHERE email = ?");
         if (!$stmt) {
             throw new Exception("Erro ao preparar a consulta de login: " . $conn->error);
         }

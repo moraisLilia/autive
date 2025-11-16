@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 $host = "localhost";  // Geralmente localhost
 $user = "root";       // Seu usuário do MySQL
 $pass = "";           // Senha do MySQL
-$db   = "autive";  // Nome do banco de dados
+$db   = "autive_db";  // Nome do banco de dados
 
 // Tenta estabelecer a conexão
 $conn = new mysqli($host, $user, $pass, $db);
