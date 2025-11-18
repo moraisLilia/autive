@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Memória</title>
+    <style>
+        /* ====================================
+           CSS: Estilo e Layout
+           ==================================== */
+        :root {
+            --primary-color: #4CAF50; /* Verde */
+            --secondary-color: #FF9800; /* Laranja */
+            --card-back-color: #2196F3; /* Azul */
+            --bg-color: #f4f4f9;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 2.5em;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .moves-counter {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #555;
+        }
+
+        #restart-button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #restart-button:hover {
+            background-color: #e68a00;
+        }
+
+        /* Grid do Jogo */
+        .memory-game {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            perspective: 1000px;
+            width: 100%;
+            max-width: 500px; /* Limite o tamanho do grid */
+            margin: 0 auto;
+        }
+
+        /* Cartas */
+        .card {
+            width: 100%;
+            padding-bottom: 100%; /* Cria um quadrado usando padding-bottom */
+            position: relative;
+            transform: scale(1);
+            transform-style: preserve-3d;
+            transition: transform .5s;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .card:active {
+            transform: scale(0.97);
+            transition: transform .2s;
+        }
+
+        .card.flip {
+            transform: rotateY(180deg);
+        }
+
+        .card.match {
+            cursor: default;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0.8;
+        }
+
+        .card-face {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 2.5em; /* Tamanho do emoji */
+        }
+
+        .card-front {
+            background-color: #fff;
+            transform: rotateY(180deg);
+        }
+
+        .card-back {
+            background-color: var(--card-back-color);
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        /* Mensagem de Conclusão */
+        .win-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .win-content {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            transform: scale(0.8);
+            opacity: 0;
+            animation: bounceIn 0.8s forwards;
+        }
+
+        .win-content h2 {
+            color: var(--primary-color);
+            font-size: 3em;
+            margin-top: 0;
+        }
+
+        .win-content p {
+            font-size: 1.5em;
+        }
+
+        /* Animação */
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .card-face {
+                font-size: 1.8em;
+            }
+            .win-content h2 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>Jogo da Memória</h1>
+
+        <div class="game-info">
+            <div class="moves-counter">Jogadas: <span id="moves-count">0</span></div>
+            <button id="restart-button">Reiniciar 🔄</button>
+        </div>
+
+        <div class="memory-game">
+            </div>
+    </div>
+
+    <div class="win-message" id="win-message">
+        <div class="win-content">
+            <h2>🎉 Parabéns! 🎉</h2>
+            <p>Você concluiu o jogo em <span id="final-moves"></span> jogadas.</p>
+            <button id="play-again-button" onclick="startGame()">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        // ====================================
+        // JAVASCRIPT: Lógica do Jogo
+        // ====================================
+        const gameBoard = document.querySelector('.memory-game');
+        const movesCountElement = document.getElementById('moves-count');
+        const restartButton = document.getElementById('restart-button');
+        const winMessage = document.getElementById('win-message');
+        const finalMovesElement = document.getElementById('final-moves');
+        const cardEmojis = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍍', '🥝', '🥭'];
+        let gameCards = [];
+        let hasFlippedCard = false;
+        let lockBoard = false;
+        let firstCard, secondCard;
+        let moves = 0;
+        let matchedPairs = 0;
+
+        /**
+         * Mistura um array (Algoritmo de Fisher-Yates)
+         * @param {Array} array - O array a ser misturado.
+         * @returns {Array} O array misturado.
+         */
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /**
+         * Cria o tabuleiro do jogo.
+         */
+        function createBoard() {
+            // 1. Cria pares de cartas (16 cartas no total, 8 pares)
+            const doubledCards = [...cardEmojis, ...cardEmojis];
+            
+            // 2. Mistura as cartas
+            gameCards = shuffle(doubledCards);
+
+            // 3. Limpa o tabuleiro anterior
+            gameBoard.innerHTML = '';
+
+            // 4. Gera o HTML das cartas
+            gameCards.forEach((emoji, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.dataset.emoji = emoji;
+                cardElement.dataset.index = index;
+
+                cardElement.innerHTML = `
+                    <div class="card-face card-front">${emoji}</div>
+                    <div class="card-face card-back">?</div>
+                `;
+                
+                cardElement.addEventListener('click', flipCard);
+                gameBoard.appendChild(cardElement);
+            });
+        }
+
+        /**
+         * Vira a carta ao ser clicada.
+         */
+        function flipCard() {
+            if (lockBoard) return;
+            // Impede que a mesma carta seja clicada duas vezes
+            if (this === firstCard) return; 
+
+            this.classList.add('flip');
+
+            if (!hasFlippedCard) {
+                // Primeiro clique
+                hasFlippedCard = true;
+                firstCard = this;
+                return;
+            }
+
+            // Segundo clique
+            secondCard = this;
+            moves++;
+            movesCountElement.textContent = moves;
+
+            checkForMatch();
+        }
+
+        /**
+         * Verifica se as duas cartas viradas são iguais.
+         */
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        /**
+         * Cartas formam um par.
+         */
+        function disableCards() {
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+            
+            // Adiciona classe de pareamento para visual (opcional)
+            firstCard.classList.add('match');
+            secondCard.classList.add('match');
+
+            matchedPairs++;
+            
+            resetBoard();
+            
+            if (matchedPairs === cardEmojis.length) {
+                setTimeout(showWinMessage, 500);
+            }
+        }
+
+        /**
+         * Cartas não formam um par, desviram.
+         */
+        function unflipCards() {
+            lockBoard = true;
+
+            setTimeout(() => {
+                firstCard.classList.remove('flip');
+                secondCard.classList.remove('flip');
+                resetBoard();
+            }, 1000); // 1 segundo para o jogador ver as cartas
+        }
+
+        /**
+         * Reseta as variáveis de estado após a jogada.
+         */
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        /**
+         * Exibe a mensagem de conclusão do jogo.
+         */
+        function showWinMessage() {
+            finalMovesElement.textContent = moves;
+            winMessage.style.display = 'flex';
+        }
+
+        /**
+         * Inicia/Reinicia o jogo.
+         */
+        function startGame() {
+            // Reseta variáveis
+            moves = 0;
+            matchedPairs = 0;
+            movesCountElement.textContent = moves;
+            winMessage.style.display = 'none';
+            resetBoard();
+            
+            // Cria um novo tabuleiro
+            createBoard();
+        }
+        
+        // Listeners
+        restartButton.addEventListener('click', startGame);
+
+        // Inicia o jogo ao carregar a página
+        startGame();
+
+    </script>
+</body>
+</html>
