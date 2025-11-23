@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quebra-Cabeça (Responsivo)</title>
+  <style>
+    :root{ --accent:#007bff; --bg:#f3f3f3; --panel:#fff; }
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+    body{margin:0;background:var(--bg);color:#222}
+    header{height:56px;background:var(--accent);color:#fff;display:flex;align-items:center;padding:0 20px}
+    header h1{font-size:16px;margin:0}
+
+    .wrap{display:flex;gap:18px;padding:18px}
+
+    /* left controls */
+    .controls{width:270px;background:var(--panel);padding:12px;border-radius:6px;border:1px solid #e0e0e0}
+    .controls .thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+    .thumbs img{width:100%;height:78px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid transparent}
+    .thumbs img.selected{border-color:var(--accent)}
+    label{display:block;margin:8px 0 6px;font-weight:600}
+    select,button,input[type=range]{width:100%;padding:8px;border-radius:6px;border:1px solid #ccc}
+    button.primary{background:var(--accent);color:#fff;border:none;padding:8px;margin-top:8px;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid #ccc;margin-top:8px}
+    .small{font-size:13px;color:#0066cc;margin-top:8px;text-align:center}
+
+    /* middle area with pieces */
+    .middle{flex:0 0 240px;background:var(--panel);padding:12px;border-radius:6px;border:1px solid #e0e0e0;height:620px;overflow:auto}
+    .pieces-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .piece{width:100%;aspect-ratio:1/1;border-radius:6px;overflow:hidden;border:1px solid #ddd;background:#fafafa;display:flex;align-items:center;justify-content:center}
+    .piece img{width:100%;height:100%;object-fit:cover;cursor:grab}
+
+    /* right preview and board */
+    .right{flex:1;display:flex;gap:18px}
+    .board-wrap{flex:1;background:var(--panel);padding:12px;border-radius:6px;border:1px solid #e0e0e0}
+    .board{width:100%;max-width:720px;height:520px;border-radius:6px;border:2px solid #777;background:#fff;position:relative;overflow:hidden}
+    .cell{position:absolute;box-sizing:border-box;border:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;background:#fafafa}
+
+    .preview{width:360px;background:var(--panel);padding:12px;border-radius:6px;border:1px solid #e0e0e0}
+    .preview .img{width:100%;height:430px;border-radius:6px;background-size:cover;background-position:center;opacity:0.35;border:1px solid #ccc}
+    .status{margin-top:10px;text-align:center;color:#0b6}
+
+    /* responsive */
+    @media (max-width:960px){.wrap{flex-direction:column}.middle{order:3;height:auto}.right{flex-direction:column}.preview{width:100%}.board{height:420px}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Quebra-Cabeça</h1>
+  </header>
+
+  <div class="wrap">
+    <aside class="controls">
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <strong>Escolha a Imagem</strong>
+        <input id="fileInput" type="file" accept="image/*" style="display:none">
+        <button id="btnChoose" class="ghost">Escolher</button>
+      </div>
+
+      <div class="thumbs">
+        <!-- Thumbnails. We'll use the uploaded file path as default source -->
+        <img class="thumb selected" data-src="macaco.jfif" src="macaco.jfif" alt="thumb">
+        <img class="thumb" data-src="leao.jfif" src="leao.jfif" alt="thumb2">
+      </div>
+
+      <label for="size">Quantidade de peças</label>
+      <select id="size">
+        <option value="3">3x3 (9)</option>
+        <option value="4" selected>4x4 (16)</option>
+        <option value="5">5x5 (25)</option>
+        <option value="6">6x6 (36)</option>
+      </select>
+
+      <button id="btnShuffle" class="primary">Embaralhar</button>
+      <button id="btnHide" class="ghost">Esconder imagem</button>
+      <div style="margin-top:10px">
+        <button id="btnReset" class="ghost">Resetar</button>
+      </div>
+
+      <div class="small">Peças corretas: <span id="correctCount">0</span></div>
+    </aside>
+
+    <section class="middle">
+      <div style="font-weight:600;margin-bottom:8px">Peças (Arraste para o tabuleiro)</div>
+      <div id="pieces" class="pieces-grid"></div>
+    </section>
+
+    <section class="right">
+      <div class="board-wrap">
+        <div class="board" id="board"></div>
+      </div>
+
+      <div class="preview">
+        <div id="previewImg" class="img" style="background-image:url('macaco.jfif')"></div>
+        <div style="margin-top:10px;text-align:center">
+          <button id="showSolution" class="ghost">Mostrar Solução</button>
+        </div>
+        <div class="status" id="statusMsg">Pronto</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // App state
+    const defaultImage = 'macaco.jfif';
+    let imgSrc = defaultImage;
+    let gridSize = parseInt(document.getElementById('size').value,10);
+    let pieces = []; // {index, imgDataUrl}
+
+    const boardEl = document.getElementById('board');
+    const piecesEl = document.getElementById('pieces');
+    const previewEl = document.getElementById('previewImg');
+    const correctCountEl = document.getElementById('correctCount');
+    const statusMsg = document.getElementById('statusMsg');
+
+    // load chosen thumbnail
+    document.querySelectorAll('.thumb').forEach(t=>{
+      t.addEventListener('click', ()=>{
+        document.querySelectorAll('.thumb').forEach(x=>x.classList.remove('selected'));
+        t.classList.add('selected');
+        imgSrc = t.dataset.src;
+        previewEl.style.backgroundImage = `url('${imgSrc}')`;
+      })
+    });
+
+    // file chooser
+    document.getElementById('btnChoose').addEventListener('click', ()=>document.getElementById('fileInput').click());
+    document.getElementById('fileInput').addEventListener('change', (e)=>{
+      const f = e.target.files[0];
+      if(!f) return;
+      const url = URL.createObjectURL(f);
+      imgSrc = url;
+      previewEl.style.backgroundImage = `url('${imgSrc}')`;
+      // add thumbnail
+      const img = document.createElement('img'); img.src = url; img.dataset.src = url; img.className='thumb selected';
+      document.querySelectorAll('.thumb').forEach(x=>x.classList.remove('selected'));
+      document.querySelector('.thumbs').prepend(img);
+      img.addEventListener('click', ()=>{ document.querySelectorAll('.thumb').forEach(x=>x.classList.remove('selected')); img.classList.add('selected'); imgSrc = img.dataset.src; previewEl.style.backgroundImage = `url('${imgSrc}')`; });
+    });
+
+    // update grid size
+    document.getElementById('size').addEventListener('change', (e)=>{ gridSize = parseInt(e.target.value,10); renderBoard(); });
+
+    // hide/show preview
+    let hidden = false;
+    document.getElementById('btnHide').addEventListener('click', ()=>{
+      hidden = !hidden; document.getElementById('btnHide').textContent = hidden? 'Mostrar imagem' : 'Esconder imagem'; previewEl.style.opacity = hidden? '0' : '0.35';
+    });
+
+    document.getElementById('btnShuffle').addEventListener('click', ()=>shuffleAndRender());
+    document.getElementById('btnReset').addEventListener('click', ()=>{ location.reload(); });
+    document.getElementById('showSolution').addEventListener('click', ()=>revealSolution());
+
+    // Core: slice image into pieces using an offscreen canvas
+    async function createPiecesFromImage(src, size){
+      const img = await loadImage(src);
+      const w = img.naturalWidth, h = img.naturalHeight;
+      const side = Math.min(w,h);
+      const cell = side/size;
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = side; tempCanvas.height = side;
+      const tctx = tempCanvas.getContext('2d');
+      // center crop
+      const sx = (w - side)/2, sy = (h - side)/2;
+      tctx.drawImage(img, sx, sy, side, side, 0,0, side, side);
+
+      const arr = [];
+      let idx = 0;
+      for(let r=0;r<size;r++){
+        for(let c=0;c<size;c++){
+          const pieceCanvas = document.createElement('canvas');
+          pieceCanvas.width = Math.ceil(cell); pieceCanvas.height = Math.ceil(cell);
+          const pctx = pieceCanvas.getContext('2d');
+          pctx.drawImage(tempCanvas, c*cell, r*cell, cell, cell, 0,0, pieceCanvas.width, pieceCanvas.height);
+          const dataUrl = pieceCanvas.toDataURL();
+          arr.push({index: idx, data: dataUrl, row:r, col:c});
+          idx++;
+        }
+      }
+      return arr;
+    }
+
+    function loadImage(src){
+      return new Promise((res,rej)=>{
+        const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = ()=>res(im); im.onerror = rej; im.src = src;
+      })
+    }
+
+    // Render board cells
+    function renderBoard(){
+      boardEl.innerHTML='';
+      const rect = boardEl.getBoundingClientRect();
+      const sizePx = Math.min(rect.width, rect.height);
+      const cellSize = sizePx / gridSize;
+
+      boardEl.style.height = rect.height + 'px';
+
+      for(let r=0;r<gridSize;r++){
+        for(let c=0;c<gridSize;c++){
+          const idx = r*gridSize + c;
+          const div = document.createElement('div');
+          div.className = 'cell'; div.dataset.index = idx; div.dataset.row=r; div.dataset.col=c;
+          div.style.width = (cellSize-2) + 'px';
+          div.style.height = (cellSize-2) + 'px';
+          div.style.left = (c*cellSize) + 'px';
+          div.style.top = (r*cellSize) + 'px';
+          div.style.cursor = 'pointer';
+          // allow drop
+          div.addEventListener('dragover', e=>e.preventDefault());
+          div.addEventListener('drop', onDrop);
+          boardEl.appendChild(div);
+        }
+      }
+    }
+
+    // create draggable pieces DOM
+    function renderPieces(list){
+      piecesEl.innerHTML='';
+      pieces = list.slice();
+      // shuffle displayed pieces order
+      const shuffled = shuffleArray(list.slice());
+      shuffled.forEach(p=>{
+        const wrap = document.createElement('div'); wrap.className='piece';
+        const img = document.createElement('img'); img.draggable=true; img.src=p.data; img.dataset.index = p.index;
+        img.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', p.index); setTimeout(()=>img.style.visibility='hidden',50); });
+        img.addEventListener('dragend', e=>{ img.style.visibility='visible'; });
+        wrap.appendChild(img); piecesEl.appendChild(wrap);
+      });
+    }
+
+    // drop handler
+    function onDrop(e){
+      e.preventDefault();
+      const pieceIndex = e.dataTransfer.getData('text/plain');
+      if(!pieceIndex) return;
+      const target = e.currentTarget;
+      // if already has an img, move it back to pieces
+      if(target.querySelector('img')){
+        const existing = target.querySelector('img');
+        movePieceBackToPool(existing);
+      }
+      // find piece data
+      const pdata = pieces.find(p=>String(p.index)===String(pieceIndex));
+      if(!pdata) return;
+      const img = document.createElement('img'); img.src = pdata.data; img.draggable=true; img.style.width='100%'; img.style.height='100%'; img.dataset.index = pdata.index;
+      img.addEventListener('dragstart', e=> e.dataTransfer.setData('text/plain', img.dataset.index));
+      img.addEventListener('dblclick', ()=>{ movePieceBackToPool(img); });
+      target.innerHTML = ''; target.appendChild(img);
+      // after placing, remove original from pool
+      removePieceFromPool(pieceIndex);
+      evaluateCorrectCount();
+    }
+
+    function movePieceBackToPool(imgEl){
+      const idx = imgEl.dataset.index;
+      // if this was placed, clear its parent
+      const parent = imgEl.parentElement;
+      if(parent && parent.classList.contains('cell')){ parent.innerHTML = ''; }
+      // create new piece in pool
+      const wrap = document.createElement('div'); wrap.className='piece';
+      const img = document.createElement('img'); img.draggable=true; img.src = pieces.find(p=>String(p.index)===String(idx)).data; img.dataset.index = idx;
+      img.addEventListener('dragstart', e=> e.dataTransfer.setData('text/plain', idx));
+      wrap.appendChild(img); piecesEl.prepend(wrap);
+      evaluateCorrectCount();
+    }
+
+    function removePieceFromPool(index){
+      // remove the matching img from piecesEl
+      const imgs = piecesEl.querySelectorAll('img');
+      for(const i of imgs){ if(i.dataset.index === String(index)){ i.parentElement.remove(); break; } }
+    }
+
+    function evaluateCorrectCount(){
+      let correct = 0, total=gridSize*gridSize;
+      boardEl.querySelectorAll('.cell').forEach(cell=>{
+        const img = cell.querySelector('img');
+        if(img){ if(Number(img.dataset.index) === Number(cell.dataset.index)) correct++; }
+      });
+      correctCountEl.textContent = correct + ' / ' + total;
+      if(correct===total){ statusMsg.textContent = 'Parabéns! Quebra-cabeça concluído.' }
+      else statusMsg.textContent = 'Peças corretas: ' + correct;
+    }
+
+    // reveal solution places all pieces correctly
+    function revealSolution(){
+      // clear pool
+      piecesEl.innerHTML='';
+      boardEl.querySelectorAll('.cell').forEach(cell=>{
+        const idx = Number(cell.dataset.index);
+        const p = pieces.find(x=>x.index===idx);
+        cell.innerHTML = '';
+        const img = document.createElement('img'); img.src = p.data; img.dataset.index = p.index; img.style.width='100%'; img.style.height='100%';
+        cell.appendChild(img);
+      });
+      evaluateCorrectCount();
+    }
+
+    // shuffle and render: generate piece images, shuffle, render board and pool
+    async function shuffleAndRender(){
+      statusMsg.textContent = 'Gerando peças...';
+      try{
+        const list = await createPiecesFromImage(imgSrc, gridSize);
+        pieces = list;
+        renderBoard();
+        renderPieces(list);
+        correctCountEl.textContent = '0 / ' + (gridSize*gridSize);
+        statusMsg.textContent = 'Arraste as peças para o tabuleiro.';
+      }catch(err){
+        statusMsg.textContent = 'Erro ao carregar a imagem. Tente outra imagem.'; console.error(err);
+      }
+    }
+
+    // utility: shuffle arr
+    function shuffleArray(a){
+      for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] }
+      return a;
+    }
+
+    // when piece in pool clicked, allow dragging with mouse (desktop) and touch
+    piecesEl.addEventListener('click', (e)=>{
+      const img = e.target.closest('img'); if(!img) return;
+      // make it draggable by programmatic drag if mobile not support
+    });
+
+    // initialize
+    window.addEventListener('load', ()=>{
+      previewEl.style.backgroundImage = `url('${imgSrc}')`;
+      renderBoard();
+      // pre-create pieces but do not slice until user clicks embaralhar due to crossOrigin/image source issues
+      statusMsg.textContent = 'Clique em Embaralhar para iniciar.';
+    });
+
+    // on window resize re-render board sizes but keep placed pieces cleared
+    let resizeTimer;
+    window.addEventListener('resize', ()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(()=>{ renderBoard(); },150); });
+  </script>
+</body>
+</html>

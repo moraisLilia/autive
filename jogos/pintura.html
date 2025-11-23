@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jogo de Pintura</title>
+<style>
+  /* Header fixo no topo */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #007bff; /* Azul vibrante */
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-size: 1.5em;
+  }
+  /* Container principal - abaixo do header */
+  body {
+    margin: 0;
+    padding-top: 60px; /* altura do header para não ficar atrás */
+    font-family: Arial, sans-serif;
+    background-color: #e4dddd;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #container {
+    display: flex;
+    height: calc(100vh - 60px); /* altura menos header */
+  }
+  /* Sidebar esquerda */
+  #sidebar {
+    width: 300px;
+    background: #e4dddd;
+    border-right: 2px solid #ccc;
+    padding: 15px 15px 0 15px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  #sidebar h2 {
+    margin: 0 0 15px;
+    color: white;
+    background-color: #007bff;
+    padding: 8px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+  }
+  /* Paleta de cores - grade de 6 colunas */
+  #colorPalette {
+    display: grid;
+    grid-template-columns: repeat(6, 30px);
+    grid-gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  /* Botões de cor quadrados */
+  .color-btn {
+    width: 30px;
+    height: 30px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .color-btn:hover {
+    border-color: #007bff;
+  }
+  .color-btn.selected {
+    border-color: black;
+    border-width: 3px;
+  }
+  /* Cor personalizada */
+  .color-picker-container {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  input[type="color"] {
+    width: 100%;
+    max-width: 120px;
+    height: 35px;
+    border: none;
+    cursor: pointer;
+  }
+  /* Tamanho pincel */
+  .brush-size {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .brush-size label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 6px;
+  }
+  input[type="range"] {
+    width: 100%;
+  }
+  /* Botões ferramentas */
+  .tools {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+  }
+  button.tool-btn {
+    flex: 1;
+    margin: 0 4px;
+    padding: 8px 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  button.tool-btn:hover {
+    background-color: #e0e0e0;
+  }
+  button.tool-btn.selected {
+    background-color: #0056b3;
+    color: white;
+    border-color: #004494;
+  }
+  /* Área de pintura (canvas) */
+  #paintArea {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    box-sizing: border-box;
+    background-color: #f3eeee;
+  }
+  #paintCanvas {
+    border: 2px solid #333;
+    background-color: white;
+    cursor: crosshair;
+    max-width: 100%;
+    max-height: 100%;
+  }
+  /* Perfil no header */
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .profile img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  Pintura
+  <div class="profile" title="Perfil">
+    <img src="icon_profile.png" alt="Perfil" />
+    <strong>eu</strong>
+  </div>
+</header>
+
+<div id="container">
+  <div id="sidebar">
+    <h2>Paleta de Cores</h2>
+    <div id="colorPalette"></div>
+
+    <div class="color-picker-container">
+      <label for="colorPicker"><strong>Cor personalizada:</strong></label><br>
+      <input type="color" id="colorPicker" value="#000000" />
+    </div>
+
+    <div class="brush-size">
+      <label for="brushSize"><strong>Tamanho do pincel:</strong></label>
+      <input type="range" id="brushSize" min="1" max="50" value="5" />
+      <div><span id="sizeValue">5</span> px</div>
+    </div>
+
+    <div class="tools">
+      <button class="tool-btn selected" id="brushBtn">Pincel</button>
+      <button class="tool-btn" id="eraserBtn">Borracha</button>
+      <button class="tool-btn" id="clearBtn">Limpar</button>
+    </div>
+  </div>
+
+  <div id="paintArea">
+    <canvas id="paintCanvas" width="1000" height="800"></canvas>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('paintCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const colorPalette = document.getElementById('colorPalette');
+  const colorPicker = document.getElementById('colorPicker');
+  const brushSizeInput = document.getElementById('brushSize');
+  const sizeValueSpan = document.getElementById('sizeValue');
+  const brushBtn = document.getElementById('brushBtn');
+  const eraserBtn = document.getElementById('eraserBtn');
+  const clearBtn = document.getElementById('clearBtn');
+
+  let painting = false;
+  let currentColor = '#000000';
+  let brushSize = 5;
+  let currentTool = 'brush';
+
+  const colors = [
+    '#FFFFFF', '#000000', '#808080', '#C0C0C0', '#FF0000', '#800000',
+    '#FFFF00', '#808000', '#00FF00', '#008000', '#00FFFF', '#008080',
+    '#0000FF', '#000080', '#FF00FF', '#800080', '#FFA500', '#A52A2A',
+    '#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#D3D3D3', '#FFB6C1',
+    '#FFA07A', '#20B2AA', '#87CEFA', '#778899', '#B0C4DE', '#FFFFE0'
+  ];
+
+  function createColorButtons() {
+    colors.forEach(color => {
+      const btn = document.createElement('button');
+      btn.classList.add('color-btn');
+      btn.style.backgroundColor = color;
+      btn.title = color;
+      btn.addEventListener('click', () => {
+        changeColor(color);
+        updateSelectedColorButton(btn);
+        colorPicker.value = rgbToHex(color);
+      });
+      colorPalette.appendChild(btn);
+    });
+  }
+
+  function updateSelectedColorButton(selectedBtn) {
+    const allButtons = document.querySelectorAll('.color-btn');
+    allButtons.forEach(btn => btn.classList.remove('selected'));
+    if(selectedBtn) selectedBtn.classList.add('selected');
+  }
+
+  function changeColor(newColor) {
+    currentColor = newColor;
+    currentTool = 'brush';
+    updateSelectedColorButton(null);
+    highlightColorButtonByColor(newColor);
+  }
+
+  function highlightColorButtonByColor(color) {
+    const allButtons = Array.from(document.querySelectorAll('.color-btn'));
+    const normColor = rgbToCss(color).toLowerCase();
+    const matched = allButtons.find(btn => btn.style.backgroundColor.toLowerCase() === normColor);
+    updateSelectedColorButton(matched || null);
+  }
+
+  function rgbToCss(hex) {
+    const ctxTmp = document.createElement('canvas').getContext('2d');
+    ctxTmp.fillStyle = hex;
+    return ctxTmp.fillStyle;
+  }
+
+  function startPainting(e) {
+    painting = true;
+    draw(e);
+  }
+  function stopPainting() {
+    painting = false;
+    ctx.beginPath();
+  }
+  function draw(e) {
+    if (!painting) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ctx.lineWidth = brushSize;
+    ctx.lineCap = 'round';
+
+    if (currentTool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = currentColor;
+    }
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+
+  brushSizeInput.addEventListener('input', () => {
+    brushSize = brushSizeInput.value;
+    sizeValueSpan.textContent = brushSize;
+  });
+
+  brushBtn.addEventListener('click', () => {
+    currentTool = 'brush';
+    brushBtn.classList.add('selected');
+    eraserBtn.classList.remove('selected');
+  });
+
+  eraserBtn.addEventListener('click', () => {
+    currentTool = 'eraser';
+    eraserBtn.classList.add('selected');
+    brushBtn.classList.remove('selected');
+  });
+
+  clearBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = 'source-over';
+  });
+
+  colorPicker.addEventListener('input', () => {
+    changeColor(colorPicker.value);
+  });
+
+  canvas.addEventListener('mousedown', startPainting);
+  canvas.addEventListener('mouseup', stopPainting);
+  canvas.addEventListener('mouseout', stopPainting);
+  canvas.addEventListener('mousemove', draw);
+
+  // Inicialização
+  createColorButtons();
+  changeColor('#000000');
+  highlightColorButtonByColor('#000000');
+</script>
+</body>
+</html>
