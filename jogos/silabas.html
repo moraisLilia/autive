@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Jogo das Sílabas — AUTIVE</title>
+
+<style>
+/* ==== ESTILO BASE ==== */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #e4dddd;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* HEADER FIXO */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #007bff;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  font-size: 1.5em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.profile img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+/* ÁREA PRINCIPAL COM SIDEBAR */
+#container {
+  display: flex;
+  height: calc(100vh - 60px);
+  padding-top: 60px;
+}
+
+/* SIDEBAR */
+#sidebar {
+  width: 300px;
+  background: #e4dddd;
+  border-right: 2px solid #ccc;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+#sidebar h2 {
+  background-color: #007bff;
+  color: white;
+  text-align: center;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+/* Botões de tema */
+.themeBtn {
+  width: 100%;
+  padding: 12px;
+  margin: 6px 0;
+  border: none;
+  border-radius: 8px;
+  background: #42a5f5;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.themeBtn:hover {
+  background: #1e88e5;
+}
+
+/* CONTEÚDO PRINCIPAL */
+#contentRow {
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding: 30px;
+  gap: 40px;
+  background: #f3eeee;
+  overflow-y: auto;
+}
+
+/* COLUNA ESQUERDA */
+#leftCol {
+  width: 55%;
+}
+
+/* SÍLABAS */
+#syllablesRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.syl {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 5px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  transition: transform 0.1s;
+}
+
+.syl:active {
+  transform: scale(0.92);
+}
+
+/* MONTAGEM */
+.built {
+  min-height: 70px;
+  padding: 15px;
+  border-radius: 12px;
+  border: 3px dashed #90caf9;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  background: #ffffffc0;
+}
+
+/* COLUNA DIREITA – IMAGEM */
+#rightCol {
+  width: 40%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.imageBox img {
+  max-width: 100%;
+  max-height: 350px;
+  border: 3px solid #ffd54f;
+  border-radius: 12px;
+  background: white;
+}
+
+/* CONTROLES */
+.controls {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.controls button {
+  padding: 12px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  background: #1a73e8;
+  color: white;
+  transition: 0.2s;
+}
+
+.controls button:hover {
+  background: #0d47a1;
+}
+
+.controls button:nth-child(2) {
+  background: #ff7043 !important;
+}
+
+#sylScore {
+  color: #ff7043;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+#sylFeedback {
+  margin-top: 8px;
+  color: #333;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  Jogo das Sílabas
+  <div class="profile">
+    <img src="../img/icon_profile.png" alt="perfil">
+    <strong>eu</strong>
+  </div>
+</header>
+
+<div id="container">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <h2>Temas</h2>
+
+    <button class="themeBtn" onclick="setTheme('animals')">ANIMAIS</button>
+    <button class="themeBtn" onclick="setTheme('objects')">OBJETOS</button>
+    <button class="themeBtn" onclick="setTheme('colors')">CORES</button>
+    <button class="themeBtn" onclick="setTheme('emotions')">EMOÇÕES</button>
+
+    <h2>Pontuação</h2>
+    <p style="font-size: 22px; text-align:center; font-weight:900; color:#ff7043;">
+      <span id="sylScore">0</span>
+    </p>
+  </div>
+
+  <!-- ÁREA PRINCIPAL -->
+  <div id="contentRow">
+
+    <div id="leftCol">
+      <h2>Sílabas</h2>
+      <div id="syllablesRow"></div>
+
+      <h2>Montagem</h2>
+      <div class="built" id="builtArea"></div>
+
+      <div class="controls">
+        <button onclick="playBuilt()">Ouvir Palavra</button>
+        <button onclick="checkSyl()">Verificar</button>
+        <p id="sylFeedback"></p>
+      </div>
+    </div>
+
+    <div id="rightCol">
+      <div class="imageBox">
+        <img id="imgPreview" src="" alt="Imagem">
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+/* ==== JAVASCRIPT ==== */
+
+const themes={
+  animals:[['ca','chor','ro'],['ga','to'],['co','e','lho']],
+  objects:[['ca','dei','ra'],['li','vro'],['te','le','fo','ne']],
+  colors:[['a','zul'],['a','ma','re','lo'],['ro','xo']],
+  emotions:[['fe','liz'],['tris','te'],['i','ra']]
+};
+
+const wordsMap={
+  animals:['Cachorro','Gato','Coelho'],
+  objects:['Cadeira','Livro','Telefone'],
+  colors:['Azul','Amarelo','Roxo'],
+  emotions:['Feliz','Triste','Ira']
+};
+
+const images = {
+  animals: ['../img/dog.png','../img/cat.png','../img/rabbit.png'],
+  objects: ['../img/chair.png','../img/book.png','../img/phone.png'],
+  colors: ['../img/blue.png','../img/yellow.png','../img/purple.png'],
+  emotions: ['../img/happy.png','../img/sad.png','../img/angry.png']
+};
+
+let currentTheme='animals';
+let currentIndex=0;
+let sylScore=0;
+
+const syllablesRowEl=document.getElementById('syllablesRow');
+const builtAreaEl=document.getElementById('builtArea');
+const sylFeedbackEl=document.getElementById('sylFeedback');
+const sylScoreEl=document.getElementById('sylScore');
+const imgPreviewEl=document.getElementById('imgPreview');
+
+function setTheme(t){currentTheme=t;newChallenge();}
+
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function newChallenge(){
+  currentIndex=Math.floor(Math.random()*themes[currentTheme].length);
+  syllablesRowEl.innerHTML='';
+  builtAreaEl.innerHTML='';
+  sylFeedbackEl.textContent='';
+
+  imgPreviewEl.src = images[currentTheme][currentIndex];
+
+  let syllables=themes[currentTheme][currentIndex].slice();
+  shuffle(syllables).forEach(s=>{
+    let b=document.createElement('div');
+    b.className='syl';
+    b.textContent=s;
+    b.onclick=()=>addBuilt(s);
+    syllablesRowEl.appendChild(b);
+  });
+}
+
+function addBuilt(s){
+  let x=document.createElement('div');
+  x.className='syl';
+  x.textContent=s;
+  x.onclick=()=>x.remove();
+  builtAreaEl.appendChild(x);
+}
+
+function playBuilt(){
+  let t = [...builtAreaEl.children].map(e => e.textContent).join('');
+  if('speechSynthesis' in window){
+    let u=new SpeechSynthesisUtterance(t);
+    u.lang='pt-BR';
+    speechSynthesis.speak(u);
+  }
+}
+
+function checkSyl(){
+  let built=[...builtAreaEl.children].map(e=>e.textContent).join('');
+  let target=wordsMap[currentTheme][currentIndex].toLowerCase();
+
+  if(built.toLowerCase()===target.replace(/\s+/g,'')){
+    sylFeedbackEl.textContent='Correto!';
+    sylScore+=10;
+  } else {
+    sylFeedbackEl.textContent='Errado — Palavra certa: '+wordsMap[currentTheme][currentIndex];
+    sylScore=Math.max(0,sylScore-5);
+  }
+  sylScoreEl.textContent=sylScore;
+}
+
+window.onload=newChallenge;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,300 @@
+<?php
+// matematica.php — versão estilizada no padrão AUTIVE
+?>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Jogo da Matemática — AUTIVE</title>
+
+<style>
+/* ======= BASE VISUAL — IGUAL AO JOGO DE SÍLABAS ======= */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #e4dddd;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* HEADER */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #007bff;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  font-size: 1.5em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.profile img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+/* LAYOUT */
+#container {
+  display: flex;
+  height: calc(100vh - 60px);
+  padding-top: 60px;
+}
+
+/* SIDEBAR */
+#sidebar {
+  width: 300px;
+  background: #e4dddd;
+  border-right: 2px solid #ccc;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+#sidebar h3 {
+  background: #007bff;
+  color: white;
+  padding: 8px;
+  border-radius: 6px;
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.sidebar-block {
+  margin-bottom: 10px;
+}
+
+.sidebar-block h4 {
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: #444;
+  text-align: center;
+}
+
+/* Botões */
+.opBtn, .diffBtn {
+  width: 100%;
+  padding: 12px;
+  margin: 2px 0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+  font-size: 18px;
+}
+
+.opBtn { background: #42a5f5; }
+.diffBtn { background: #ab47bc; }
+
+.opBtn:hover, .diffBtn:hover { opacity: 0.85; }
+
+/* MAIN */
+#mainArea {
+  flex-grow: 1;
+  padding: 40px;
+  background: #f3eeee;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.question {
+  font-size: 60px;
+  font-weight: bold;
+  margin: 40px 0;
+  color: #1a73e8;
+}
+
+input {
+  padding: 15px;
+  font-size: 22px;
+  width: 200px;
+  border-radius: 12px;
+  border: 2px solid #64b5f6;
+  text-align: center;
+}
+
+/* Botões em baixo da pergunta */
+.controls {
+  margin-top: 20px;
+}
+
+.controls button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 5px;
+  color: white;
+  font-size: 18px;
+}
+
+.btn-check { background: #43a047; }
+.btn-new { background: #ff7043; }
+
+.controls button:hover { opacity: 0.9; }
+
+.score {
+  margin-top: 20px;
+  font-size: 26px;
+  font-weight: bold;
+  color: #ff7043;
+}
+
+/* Feedback */
+#mathFeedback {
+  margin-top: 15px;
+  font-size: 20px;
+  color: #333;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  Jogo da Matemática
+  <div class="profile">
+    <img src="../img/icon_profile.png" alt="perfil">
+    <strong>eu</strong>
+  </div>
+</header>
+
+<div id="container">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+
+    <h3>Configurações</h3>
+
+    <div class="sidebar-block">
+      <h4>Operação</h4>
+      <button class="opBtn" onclick="setOp('+')">Somar (+)</button>
+      <button class="opBtn" onclick="setOp('-')">Subtrair (−)</button>
+      <button class="opBtn" onclick="setOp('*')">Multiplicar (×)</button>
+      <button class="opBtn" onclick="setOp('/')">Dividir (÷)</button>
+    </div>
+
+    <div class="sidebar-block">
+      <h4>Dificuldade</h4>
+      <button class="diffBtn" onclick="setDiff('easy')">Fácil</button>
+      <button class="diffBtn" onclick="setDiff('medium')">Médio</button>
+      <button class="diffBtn" onclick="setDiff('hard')">Difícil</button>
+    </div>
+
+    <h3>Pontuação</h3>
+    <p style="text-align:center; font-size:24px; font-weight:bold; color:#ff7043;">
+      <span id="mathScore">0</span>
+    </p>
+
+  </div>
+
+  <!-- ÁREA PRINCIPAL -->
+  <div id="mainArea">
+
+    <div class="question" id="question">—</div>
+
+    <input type="number" id="answerInput" placeholder="Digite sua resposta">
+
+    <div class="controls">
+      <button class="btn-check" onclick="checkAnswer()">Verificar</button>
+      <button class="btn-new" onclick="gen()">Novo</button>
+    </div>
+
+    <p id="mathFeedback"></p>
+
+  </div>
+
+</div>
+
+<script>
+let currentOp = '+', difficulty = 'easy', currentAnswer = null, mathScore = 0;
+
+function setOp(op){ currentOp = op; gen(); }
+function setDiff(d){ difficulty = d; gen(); }
+
+function salvarPontuacao(jogo,pontuacao){
+  fetch("salvar_pontos.php",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({jogo,pontuacao})
+  });
+}
+
+function r(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function gen(){
+  let a,b;
+
+  if(difficulty==='easy'){ a=r(1,9); b=r(1,9); }
+  else if(difficulty==='medium'){ a=r(5,20); b=r(2,15); }
+  else { a=r(10,60); b=r(5,30); }
+
+  if(currentOp==='/'){
+    let res = a * b;
+    currentAnswer = b;
+    question.textContent = `${res} ÷ ${b}`;
+  }
+  else if(currentOp==='*'){
+    currentAnswer = a * b;
+    question.textContent = `${a} × ${b}`;
+  }
+  else if(currentOp==='+'){
+    currentAnswer = a + b;
+    question.textContent = `${a} + ${b}`;
+  }
+  else {
+    if(a < b) [a, b] = [b, a];
+    currentAnswer = a - b;
+    question.textContent = `${a} - ${b}`;
+  }
+
+  answerInput.value = '';
+  mathFeedback.textContent = '';
+}
+
+function checkAnswer(){
+  const v = Number(answerInput.value);
+
+  if(answerInput.value.trim()===''){
+    mathFeedback.textContent = 'Digite uma resposta.';
+    return;
+  }
+
+  if(v === currentAnswer){
+    mathFeedback.textContent = 'Correto!';
+    mathScore += 10;
+
+    if(mathScore % 50 === 0){
+      salvarPontuacao('matematica', mathScore);
+    }
+  } else {
+    mathFeedback.textContent = 'Errado — correto: ' + currentAnswer;
+    mathScore = Math.max(0, mathScore - 5);
+  }
+
+  document.getElementById('mathScore').textContent = mathScore;
+}
+
+window.onload = gen;
+</script>
+
+</body>
+</html>

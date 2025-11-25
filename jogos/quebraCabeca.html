@@ -46,7 +46,7 @@
 </head>
 <body>
   <header>
-    <h1>Quebra-Cabeça</h1>
+  Quebra-Cabeça
   </header>
 
   <div class="wrap">
@@ -59,8 +59,8 @@
 
       <div class="thumbs">
         <!-- Thumbnails. We'll use the uploaded file path as default source -->
-        <img class="thumb selected" data-src="macaco.jfif" src="macaco.jfif" alt="thumb">
-        <img class="thumb" data-src="leao.jfif" src="leao.jfif" alt="thumb2">
+        <img class="thumb selected" data-src="../img//macaco.jfif" src="../img//macaco.jfif" alt="thumb">
+        <img class="thumb" data-src="../img//leao.jfif" src="../img//leao.jfif" alt="thumb2">
       </div>
 
       <label for="size">Quantidade de peças</label>
@@ -91,7 +91,7 @@
       </div>
 
       <div class="preview">
-        <div id="previewImg" class="img" style="background-image:url('macaco.jfif')"></div>
+        <div id="previewImg" class="img" style="background-image:url('../img/macaco.jfif')"></div>
         <div style="margin-top:10px;text-align:center">
           <button id="showSolution" class="ghost">Mostrar Solução</button>
         </div>
@@ -102,7 +102,7 @@
 
   <script>
     // App state
-    const defaultImage = 'macaco.jfif';
+    const defaultImage = '../img/macaco.jfif';
     let imgSrc = defaultImage;
     let gridSize = parseInt(document.getElementById('size').value,10);
     let pieces = []; // {index, imgDataUrl}
